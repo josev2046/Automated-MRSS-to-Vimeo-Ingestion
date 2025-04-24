@@ -2,7 +2,7 @@
 
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.15276505.svg)](https://doi.org/10.5281/zenodo.15276505)
 
-This POC repository outlines and potentially contains the code for an automated system designed to ingest video content from an MRSS (Media RSS) feed directly into a Vimeo account. The core strategy leverages Vimeo's "pull" upload mechanism for efficient content transfer.
+This proof-of-concept repository details an automated system for ingesting video content from an MRSS (Media RSS) feed directly into a Vimeo account, utilising Vimeo's "pull" upload mechanism.
 
 ![image](https://github.com/user-attachments/assets/620fa64b-93c0-4eb7-b1fc-05e0a91c88b6)
 
