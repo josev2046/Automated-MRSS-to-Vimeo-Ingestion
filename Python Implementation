@@ -1,0 +1,134 @@
+import requests
+import xml.etree.ElementTree as ET
+import time
+import json
+import os  # Import os just in case for potential filename extraction (though not directly used for pull)
+import certifi
+
+# --- POC ---
+
+
+# --- Configuration ---
+RSS_FEED_URL = "{FEED URL}"
+VIMEO_ACCESS_TOKEN = "{TOKEN}"  # Replace with your actual Vimeo API access token
+VIMEO_UPLOAD_ENDPOINT = "https://api.vimeo.com/me/videos"
+
+def fetch_rss_feed(url, verify_ssl=True):
+    """Fetches the RSS feed content from the given URL."""
+    try:
+        if verify_ssl:
+            response = requests.get(url, verify=certifi.where())
+        else:
+            response = requests.get(url, verify=False)
+        response.raise_for_status()
+        return response.content
+    except requests.exceptions.RequestException as e:
+        print(f"Error fetching RSS feed: {e}")
+        return None
+
+def extract_video_urls(xml_content):
+    """Parses the RSS feed and extracts direct video URLs."""
+    video_urls = []
+    try:
+        root = ET.fromstring(xml_content)
+        for item in root.findall('.//item'):
+            media_content = item.find('.//media:content[@medium="video"][@type="video/mp4"]', namespaces={'media': 'http://search.yahoo.com/mrss/'})
+            if media_content is not None:
+                video_url = media_content.get('url')
+                if video_url and video_url.lower().endswith(('.mp4', '.mov', '.avi', '.wmv', '.mkv')):
+                    video_urls.append(video_url)
+    except ET.ParseError as e:
+        print(f"Error parsing XML: {e}")
+    return video_urls
+
+def upload_to_vimeo_pull(video_url, access_token):
+    """Attempts to upload a video to Vimeo using the pull approach."""
+    headers = {
+        "Authorization": f"bearer {access_token}",
+        "Content-Type": "application/json",
+        "Accept": "application/vnd.vimeo.*+json;version=3.4"
+    }
+    # Extract filename for the video title (can be improved)
+    filename_without_extension = os.path.splitext(video_url.split('/')[-1])[0] if '/' in video_url else "Pulled Video"
+
+    params = {
+        'upload': {
+            'approach': 'pull',
+            'link': video_url  # Use the direct URL here
+        },
+        'name': filename_without_extension  # Set the video title
+    }
+
+    try:
+        response = requests.post(VIMEO_UPLOAD_ENDPOINT, headers=headers, json=params, verify=certifi.where())
+        response.raise_for_status()
+        upload_data = response.json()
+        vimeo_uri = upload_data.get('uri')
+        print(f"Successfully initiated Vimeo pull upload for: {video_url}")
+        print(f"Vimeo URI: {vimeo_uri}")
+        return vimeo_uri
+    except requests.exceptions.RequestException as e:
+        try:
+            error_data = response.json()
+            print(f"Error initiating pull upload for {video_url} to Vimeo:")
+            print(json.dumps(error_data, indent=4))
+        except json.JSONDecodeError:
+            print(f"Error initiating pull upload for {video_url} to Vimeo: {e}")
+        return None
+
+def verify_upload_status(vimeo_uri, access_token):
+    """Optionally verify the upload status by checking the video resource on Vimeo."""
+    if not vimeo_uri:
+        return False
+
+    headers = {
+        "Authorization": f"bearer {access_token}",
+        "Accept": "application/vnd.vimeo.*+json;version=3.4"
+    }
+    vimeo_video_url = f"https://api.vimeo.com{vimeo_uri}"
+    try:
+        response = requests.get(vimeo_video_url, headers=headers)
+        response.raise_for_status()
+        video_info = response.json()
+        status = video_info.get('status')
+        print(f"Vimeo video status for {vimeo_uri}: {status}")
+        return True
+    except requests.exceptions.RequestException as e:
+        print(f"Error checking Vimeo video status for {vimeo_uri}: {e}")
+        return False
+
+def main():
+    """Main function to fetch RSS, extract URLs, and upload to Vimeo using pull."""
+    # Try fetching with SSL verification first
+    rss_content = fetch_rss_feed(RSS_FEED_URL)
+
+    # If fetching fails due to SSL, try again with verification disabled (for testing ONLY)
+    if rss_content is None:
+        print("Trying to fetch RSS feed with SSL verification disabled (FOR TESTING ONLY)...")
+        rss_content = fetch_rss_feed(RSS_FEED_URL, verify_ssl=False)
+        if rss_content is None:
+            print("Failed to fetch RSS feed even with SSL verification disabled. Please check your network and the RSS URL.")
+            return
+
+    if rss_content:
+        video_urls = extract_video_urls(rss_content)
+        if video_urls:
+            print(f"Found {len(video_urls)} potential video URLs.")
+            for url in video_urls:
+                print(f"Attempting to pull upload: {url}")
+                vimeo_uri = upload_to_vimeo_pull(url, VIMEO_ACCESS_TOKEN) # Use the direct URL
+                if vimeo_uri:
+                    time.sleep(10) # Give Vimeo some time to start pulling
+                    verify_upload_status(vimeo_uri, VIMEO_ACCESS_TOKEN)
+                time.sleep(5) # Be mindful of Vimeo API rate limits
+        else:
+            print("No video URLs found in the RSS feed.")
+
+if __name__ == "__main__":
+    main()
+
+# --- Optional: For continuous updates, you can wrap the main logic in a loop with a delay ---
+# while True:
+#     main()
+#     print("Waiting for the next update...")
+#     time.sleep(3600) # Sleep for 1 hour (adjust as needed)
