@@ -22,19 +22,4 @@ The automated ingestion process follows these key steps:
 *  **Optional Upload Monitoring:** The system can optionally monitor the status of the initiated upload via the Vimeo API to confirm successful completion.
 *  **Tracking Processed Items:** A record of successfully ingested videos is maintained to prevent duplicate uploads.
 
-## UML Diagram
 
-```plantuml
-@startuml
-participant "Python Script" as Script
-participant "MRSS Feed" as RSS
-participant "Vimeo API" as Vimeo
-
-Script -> Script : At scheduled interval
-Script -> RSS : Fetch content
-RSS --> Script : Returns XML
-Script -> Script : Parse XML, extract & validate video URLs
-Script -> Vimeo : Upload URL (direct video, encoded, CDN/presigned)
-Vimeo -> Vimeo : Process pull upload
-Vimeo --> Script : Upload status/Vimeo URL
-@enduml
