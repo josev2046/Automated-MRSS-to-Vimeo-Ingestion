@@ -1,6 +1,6 @@
 # Automated MRSS to Vimeo Ingestion
 
-This repository outlines and potentially contains the code for an automated system designed to ingest video content from an MRSS (Media RSS) feed directly into a Vimeo account. The core strategy leverages Vimeo's "pull" upload mechanism for efficient content transfer.
+This POC repository outlines and potentially contains the code for an automated system designed to ingest video content from an MRSS (Media RSS) feed directly into a Vimeo account. The core strategy leverages Vimeo's "pull" upload mechanism for efficient content transfer.
 
 ![image](https://github.com/user-attachments/assets/620fa64b-93c0-4eb7-b1fc-05e0a91c88b6)
 
