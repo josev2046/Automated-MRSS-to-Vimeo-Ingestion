@@ -1,0 +1,13 @@
+@startuml
+participant "Python Script" as Script
+participant "MRSS Feed" as RSS
+participant "Vimeo API" as Vimeo
+
+Script -> Script : At scheduled interval
+Script -> RSS : Fetch content
+RSS --> Script : Returns XML
+Script -> Script : Parse XML, extract & validate video URLs
+Script -> Vimeo : Upload URL (direct video, encoded, CDN/presigned)
+Vimeo -> Vimeo : Process pull upload
+Vimeo --> Script : Upload status/Vimeo URL
+@enduml
