@@ -108,6 +108,10 @@ import requests
    if video_urls:
     print(f"Found {len(video_urls)} potential video URLs.")
     for url in video_urls:
+     # Edge case handling: Some RSS feeds might mistakenly include direct links
+     # to already hosted Vimeo videos (e.g., from the source website).
+     # To avoid attempting to re-upload these, we explicitly check for
+     # "vimeo.com" or "vimeocdn.com" in the URL and skip the upload process.
      if "vimeo.com" in url or "vimeocdn.com" in url:
       print(f"Video url {url} is a vimeo.com video")
      else:
