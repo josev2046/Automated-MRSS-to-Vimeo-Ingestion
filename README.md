@@ -19,7 +19,7 @@ The automated ingestion process follows these key steps:
 
 *  **Periodic feed retrieval:** The system is scheduled to regularly fetch the latest version of the target MRSS feed.
 *  **XML parsing:** Upon retrieval, the XML content of the feed is analysed to identify new video entries. This involves examining specific XML elements that contain video metadata, including the direct URLs of the video files.
-*  **URL extraction:** For each new video identified, the direct URL of the associated video file (such us `.mp4`) is extracted.
+*  **URL extraction:** For each new video identified, the direct URL of the associated video file (such as `.mp4`) is extracted.
 *  **Vimeo pull upload initiation:** Using the Vimeo API, a request is made to create a new video, specifying the pull upload method and providing the extracted video URL. This process requires secure authentication with the Vimeo API. The provided URL should ideally be a direct, encoded link, potentially from a CDN or a pre-signed URL for optimal performance and security.
 *  **Optional upload monitoring:** The system can optionally monitor the status of the initiated upload via the Vimeo API to confirm successful completion.
 *  **Tracking processed items:** A record of successfully ingested videos is maintained to prevent duplicate uploads.
